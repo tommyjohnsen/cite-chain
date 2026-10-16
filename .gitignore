@@ -1,5 +1,6 @@
 .uv-cache/
 .pytest_cache/
+pytest-of-*/
 __pycache__/
 *.egg-info/
 .notify
