@@ -27,11 +27,13 @@ class OpenAlexClient:
 
     def __init__(self, *, api_key: str | None = None, email: str | None = None,
                  opener: Callable[..., Any] = urlopen,
+                 cache: JsonCache | None = None,
                  clock: Callable[[], float] = time.monotonic,
                  sleeper: Callable[[float], None] = time.sleep) -> None:
         self.api_key = api_key if api_key is not None else os.getenv("OPENALEX_API_KEY")
         self.email = email if email is not None else os.getenv("CONTACT_EMAIL")
         self.opener = opener
+        self.cache = cache
         self.limiter = RateLimiter(10, clock=clock, sleeper=sleeper)
 
     def _request(self, path: str, params: dict[str, Any] | None = None) -> dict[str, Any]:
@@ -40,8 +42,16 @@ class OpenAlexClient:
             clean["mailto"] = self.email
         if self.api_key:
             clean["api_key"] = self.api_key
+        url = f"{self.base_url}{path}?{urlencode(clean)}"
+        if self.cache:
+            cached = self.cache.get("openalex", url)
+            if cached is not None:
+                return cached
         self.limiter.wait()
-        return get_json(f"{self.base_url}{path}?{urlencode(clean)}", opener=self.opener)
+        value = get_json(url, opener=self.opener)
+        if self.cache:
+            self.cache.put("openalex", url, value)
+        return value
 
     @staticmethod
     def parse(item: dict[str, Any]) -> Work:
@@ -94,15 +104,22 @@ class OpenAlexClient:
             return []
         return [self.parse(x) for x in self._pages({"filter": f"cites:{ident.rsplit('/', 1)[-1]}"})]
 
+    def search(self, title: str, *, limit: int = 5) -> list[Work]:
+        """Return a small, deterministic title-search result set."""
+        data = self._request("/works", {"search": title, "per-page": limit})
+        return [self.parse(item) for item in data.get("results", [])]
+
 
 class CrossrefClient:
     base_url = "https://api.crossref.org"
 
     def __init__(self, *, email: str | None = None, opener: Callable[..., Any] = urlopen,
+                 cache: JsonCache | None = None,
                  clock: Callable[[], float] = time.monotonic,
                  sleeper: Callable[[float], None] = time.sleep) -> None:
         self.email = email if email is not None else os.getenv("CONTACT_EMAIL")
         self.opener = opener
+        self.cache = cache
         self.limiter = RateLimiter(10, clock=clock, sleeper=sleeper)
         self.concurrent = threading.BoundedSemaphore(3)
 
@@ -110,9 +127,17 @@ class CrossrefClient:
         clean = dict(params or {})
         if self.email:
             clean["mailto"] = self.email
+        url = f"{self.base_url}{path}?{urlencode(clean)}"
+        if self.cache:
+            cached = self.cache.get("crossref", url)
+            if cached is not None:
+                return cached
         self.limiter.wait()
         with self.concurrent:
-            return get_json(f"{self.base_url}{path}?{urlencode(clean)}", opener=self.opener)
+            value = get_json(url, opener=self.opener)
+        if self.cache:
+            self.cache.put("crossref", url, value)
+        return value
 
     @staticmethod
     def parse(item: dict[str, Any]) -> Work:
@@ -148,6 +173,11 @@ class CrossrefClient:
             return []
         data = self._request("/works", {"filter": f"reference:{work.doi}", "rows": 1000})
         return [self.parse(x) for x in data.get("message", {}).get("items", [])]
+
+    def search(self, title: str, *, limit: int = 5) -> list[Work]:
+        """Return a small, deterministic title-search result set."""
+        data = self._request("/works", {"query.title": title, "rows": limit})
+        return [self.parse(item) for item in data.get("message", {}).get("items", [])]
 
 
 class SemanticScholarClient:

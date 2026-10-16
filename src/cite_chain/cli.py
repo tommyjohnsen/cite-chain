@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import argparse
+from datetime import date
 import sys
 from pathlib import Path
 
 from .clients import CrossrefClient, OpenAlexClient, SemanticScholarClient, UnpaywallClient
 from .oa import route_open_access
+from .ledger import check_rows, parse_ledger, suggested_table, write_reports
+from .http import JsonCache
 from .outputs import write_outputs
 from .walk import walk
 
@@ -26,7 +29,7 @@ def parser() -> argparse.ArgumentParser:
 def ledger_parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(prog="cite-chain ledger")
     commands = result.add_subparsers(dest="ledger_command", title="commands")
-    check = commands.add_parser("check", help="reserved for the ledger checker")
+    check = commands.add_parser("check", help="check a source ledger")
     check.add_argument("ledger", type=Path)
     check.add_argument("--draft", type=Path)
     check.add_argument("--today")
@@ -40,7 +43,20 @@ def main(argv: list[str] | None = None) -> int:
         ledger = ledger_parser()
         parsed = ledger.parse_args(arguments[1:])
         if parsed.ledger_command == "check":
-            ledger.error("the ledger checker is not available in this release")
+            try:
+                today = date.fromisoformat(parsed.today) if parsed.today else date.today()
+                rows = parse_ledger(parsed.ledger)
+                draft = parsed.draft.read_text(encoding="utf-8") if parsed.draft else None
+                results = check_rows(rows, today=today, draft=draft,
+                                     unpaywall=UnpaywallClient(),
+                                     metadata_clients=(CrossrefClient(cache=JsonCache()),
+                                                       OpenAlexClient(cache=JsonCache())))
+                write_reports(results)
+                if parsed.suggest:
+                    sys.stdout.write(suggested_table(rows, results))
+                return 0
+            except (OSError, UnicodeError, ValueError) as exc:
+                ledger.error(str(exc))
         ledger.print_help()
         return 0
     args = parser().parse_args(arguments)

@@ -19,7 +19,18 @@ included in output. Semantic Scholar responses remain in the local
 metadata and identifiers. Open-access routing checks Unpaywall first when a
 contact email is available, then uses OpenAlex OA fields as its fallback.
 
-The `cite-chain ledger` command group is reserved for the ledger checker in a
-later release.
+Check a Markdown source ledger and write `ledger-report.json` and
+`ledger-report.md` in the current directory:
+
+```console
+CONTACT_EMAIL=you@example.com cite-chain ledger check LEDGER.md --draft DRAFT.md --today 2026-10-16
+```
+
+The ledger table must have the columns `Source`, `Found via`,
+`ALT copy found? (URL)`, and `Status`. Add `--suggest` to print a proposed table
+with open-access candidates; the command never changes the ledger itself.
+DOI rows use Unpaywall. Rows without a DOI use cached Crossref and OpenAlex
+metadata searches. Contact details are read from `CONTACT_EMAIL` and are not
+included in reports.
 
 All output is a first pass and needs human verification before use.
