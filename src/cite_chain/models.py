@@ -32,6 +32,8 @@ class Work:
     cited_by_ids: list[str] = field(default_factory=list)
     is_oa: bool | None = None
     oa_url: str | None = None
+    oa_source: str | None = None
+    oa_reason: str = "Not checked"
 
     def __post_init__(self) -> None:
         self.doi = normalize_doi(self.doi)
@@ -55,7 +57,14 @@ class Work:
         if other.is_oa is True or self.is_oa is None:
             self.is_oa = other.is_oa
         self.oa_url = self.oa_url or other.oa_url
+        self.oa_source = self.oa_source or other.oa_source
+        if self.oa_reason == "Not checked" and other.oa_reason != "Not checked":
+            self.oa_reason = other.oa_reason
         return self
+
+    @property
+    def access(self) -> str:
+        return "OPEN" if self.is_oa is True and bool(self.oa_url) else "LIBRARY-ONLY"
 
     def public_dict(self) -> dict[str, Any]:
         return {
@@ -65,8 +74,11 @@ class Work:
             "year": self.year,
             "authors": self.authors,
             "source_ids": self.source_ids,
+            "access": self.access,
             "is_oa": self.is_oa,
             "oa_url": self.oa_url,
+            "oa_source": self.oa_source,
+            "oa_reason": self.oa_reason,
         }
 
 
@@ -75,4 +87,3 @@ class Edge:
     source: str
     target: str
     relation: str
-

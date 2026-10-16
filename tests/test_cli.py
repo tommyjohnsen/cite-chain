@@ -3,7 +3,8 @@ from __future__ import annotations
 import csv
 import json
 
-from cite_chain.cli import _write_outputs
+from cite_chain.cli import ledger_parser
+from cite_chain.outputs import write_outputs
 from cite_chain.models import Work
 from cite_chain.walk import Graph
 
@@ -15,10 +16,19 @@ def test_writes_declared_outputs(tmp_path):
     graph.add(Work("Restricted synthetic source", "10.5555/closed.1", 2023), 1)
     graph.attributions.add("Data from Semantic Scholar")
 
-    _write_outputs(graph, tmp_path)
+    write_outputs(graph, tmp_path)
 
     data = json.loads((tmp_path / "graph.json").read_text())
     assert len(data["nodes"]) == 2
     assert "Data from Semantic Scholar" in (tmp_path / "chain.md").read_text()
     rows = list(csv.DictReader((tmp_path / "LIBRARY-ONLY.csv").open()))
     assert [row["doi"] for row in rows] == ["10.5555/closed.1"]
+
+
+def test_ledger_command_group_is_reserved_for_next_release():
+    args = ledger_parser().parse_args([
+        "check", "ledger.md", "--draft", "draft.md", "--today", "2026-10-16", "--suggest"
+    ])
+    assert args.ledger_command == "check"
+    assert args.ledger.name == "ledger.md"
+    assert args.suggest is True

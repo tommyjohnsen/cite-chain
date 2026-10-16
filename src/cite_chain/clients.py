@@ -45,15 +45,18 @@ class OpenAlexClient:
 
     @staticmethod
     def parse(item: dict[str, Any]) -> Work:
-        location = item.get("best_oa_location") or item.get("primary_location") or {}
+        is_oa = (item.get("open_access") or {}).get("is_oa")
+        location = ((item.get("best_oa_location") or item.get("primary_location"))
+                    if is_oa is True else {}) or {}
         return Work(
             title=item.get("title") or "", doi=item.get("doi"),
             year=_year(item.get("publication_year")),
             authors=[x.get("author", {}).get("display_name", "") for x in item.get("authorships", []) if x.get("author")],
             source_ids={"openalex": item["id"]} if item.get("id") else {},
             referenced_ids=list(item.get("referenced_works") or []),
-            is_oa=(item.get("open_access") or {}).get("is_oa"),
+            is_oa=is_oa,
             oa_url=location.get("landing_page_url") or location.get("pdf_url"),
+            oa_source="OpenAlex" if is_oa is not None else None,
         )
 
     def get_work(self, identifier: str) -> Work | None:
@@ -173,15 +176,16 @@ class SemanticScholarClient:
     @staticmethod
     def parse(item: dict[str, Any]) -> Work:
         external = item.get("externalIds") or {}
-        return Work(title=item.get("title") or "", doi=external.get("DOI"), year=_year(item.get("year")),
-                    authors=[a.get("name", "") for a in item.get("authors", [])],
+        # Provider metadata stays in its local cache. Exports may contain only
+        # identifiers and flags derived by this package.
+        return Work(doi=external.get("DOI"),
                     source_ids={"semantic_scholar": item["paperId"]} if item.get("paperId") else {})
 
     def get_work(self, identifier: str) -> Work | None:
         doi = normalize_doi(identifier)
         paper_id = f"DOI:{doi}" if doi else identifier
         try:
-            data = self._request(f"/paper/{quote(paper_id, safe=':')}", {"fields": "paperId,title,year,authors,externalIds"})
+            data = self._request(f"/paper/{quote(paper_id, safe=':')}", {"fields": "paperId,externalIds"})
             return self.parse(data)
         except Exception as exc:
             if getattr(exc, "code", None) == 404:
@@ -193,7 +197,7 @@ class SemanticScholarClient:
         if not ident:
             return []
         data = self._request(f"/paper/{quote(ident, safe=':')}/{relation}",
-                             {"fields": "paperId,title,year,authors,externalIds", "limit": 1000})
+                             {"fields": "paperId,externalIds", "limit": 1000})
         side = "citedPaper" if relation == "references" else "citingPaper"
         return [self.parse(row[side]) for row in data.get("data", []) if row.get(side)]
 
@@ -228,5 +232,5 @@ class UnpaywallClient:
         best = data.get("best_oa_location") or {}
         return Work(title=data.get("title") or "", doi=data.get("doi") or normalized,
                     year=_year(data.get("year")), is_oa=bool(data.get("is_oa")),
-                    oa_url=best.get("url_for_landing_page") or best.get("url"))
-
+                    oa_url=(best.get("url_for_landing_page") or best.get("url_for_pdf")
+                            or best.get("url")), oa_source="Unpaywall")

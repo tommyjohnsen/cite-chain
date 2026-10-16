@@ -16,6 +16,10 @@ with `--file`. The command writes `graph.json`, `chain.md`, and
 from `OPENALEX_API_KEY`, `S2_API_KEY`, and `CONTACT_EMAIL`; they are never
 included in output. Semantic Scholar responses remain in the local
 `.cache/cite-chain/` cache, while exported graph data contains only normalized
-metadata and identifiers.
+metadata and identifiers. Open-access routing checks Unpaywall first when a
+contact email is available, then uses OpenAlex OA fields as its fallback.
+
+The `cite-chain ledger` command group is reserved for the ledger checker in a
+later release.
 
 All output is a first pass and needs human verification before use.

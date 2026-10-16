@@ -74,8 +74,8 @@ def test_semantic_scholar_cache_excludes_key(tmp_path: Path):
     cache = JsonCache(tmp_path)
     client = SemanticScholarClient(api_key="synthetic-secret", opener=opener, cache=cache,
                                    sleeper=lambda _: None)
-    assert client.get_work("10.5555/cache.1").title == "Cached"
-    assert client.get_work("10.5555/cache.1").title == "Cached"
+    assert client.get_work("10.5555/cache.1").doi == "10.5555/cache.1"
+    assert client.get_work("10.5555/cache.1").title == ""
     assert len(calls) == 1
     written = "".join(path.read_text() for path in tmp_path.rglob("*.json"))
     assert "synthetic-secret" not in written
@@ -93,4 +93,3 @@ def test_rate_limiter_uses_injected_clock():
     limiter.wait()
     limiter.wait()
     assert sleeps == [1.0]
-

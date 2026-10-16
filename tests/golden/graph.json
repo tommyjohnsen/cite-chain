@@ -1,0 +1,46 @@
+{
+  "nodes": [
+    {
+      "id": "doi:10.5555/closed.1",
+      "doi": "10.5555/closed.1",
+      "title": "Restricted synthetic source",
+      "year": 2023,
+      "authors": [
+        "B. Example"
+      ],
+      "source_ids": {},
+      "access": "LIBRARY-ONLY",
+      "is_oa": false,
+      "oa_url": null,
+      "oa_source": "Unpaywall",
+      "oa_reason": "Unpaywall reports no open-access location",
+      "hop": 1
+    },
+    {
+      "id": "doi:10.5555/open.1",
+      "doi": "10.5555/open.1",
+      "title": "Open synthetic source",
+      "year": 2024,
+      "authors": [
+        "A. Example"
+      ],
+      "source_ids": {},
+      "access": "OPEN",
+      "is_oa": true,
+      "oa_url": "https://api.unpaywall.org/open",
+      "oa_source": "Unpaywall",
+      "oa_reason": "Unpaywall provides an open-access location",
+      "hop": 0
+    }
+  ],
+  "edges": [
+    {
+      "source": "doi:10.5555/open.1",
+      "target": "doi:10.5555/closed.1",
+      "relation": "references"
+    }
+  ],
+  "attributions": [
+    "Data from Semantic Scholar"
+  ]
+}

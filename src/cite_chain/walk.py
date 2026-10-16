@@ -102,10 +102,6 @@ def walk(seeds: list[str], sources: list[Source], *, hops: int = 1,
             queue.append((key, 0))
         if len(graph.nodes) >= max_nodes:
             break
-    for source in sources:
-        attribution = getattr(source, "attribution", None)
-        if attribution:
-            graph.attributions.add(attribution)
     expanded: set[tuple[str, int]] = set()
     while queue and len(graph.nodes) < max_nodes:
         key, hop = queue.popleft()
@@ -132,4 +128,6 @@ def walk(seeds: list[str], sources: list[Source], *, hops: int = 1,
                     break
             if len(graph.nodes) >= max_nodes:
                 break
+    if any("semantic_scholar" in work.source_ids for work in graph.nodes.values()):
+        graph.attributions.add("Data from Semantic Scholar")
     return graph

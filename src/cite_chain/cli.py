@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import argparse
-import csv
-import json
+import sys
 from pathlib import Path
 
 from .clients import CrossrefClient, OpenAlexClient, SemanticScholarClient, UnpaywallClient
+from .oa import route_open_access
+from .outputs import write_outputs
 from .walk import walk
 
 
@@ -22,32 +23,27 @@ def parser() -> argparse.ArgumentParser:
     return result
 
 
-def _write_outputs(graph, directory: Path) -> None:
-    directory.mkdir(parents=True, exist_ok=True)
-    (directory / "graph.json").write_text(json.dumps(graph.as_dict(), indent=2) + "\n", encoding="utf-8")
-    lines = ["# Citation chain", "", "First-pass map; verify all records before use.", ""]
-    for hop in sorted(set(graph.hops.values())):
-        lines.extend((f"## Hop {hop}", ""))
-        for key in sorted(key for key, value in graph.hops.items() if value == hop):
-            work = graph.nodes[key]
-            suffix = f" ({work.year})" if work.year else ""
-            lines.append(f"- {work.title or work.doi or key}{suffix}")
-        lines.append("")
-    if graph.attributions:
-        lines.extend(sorted(graph.attributions))
-        lines.append("")
-    (directory / "chain.md").write_text("\n".join(lines), encoding="utf-8")
-    with (directory / "LIBRARY-ONLY.csv").open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.writer(handle)
-        writer.writerow(("title", "authors", "year", "doi", "why"))
-        for work in sorted(graph.nodes.values(), key=lambda item: item.key):
-            if work.is_oa is not True:
-                writer.writerow((work.title, "; ".join(work.authors), work.year or "", work.doi or "",
-                                 "No verified open-access location"))
+def ledger_parser() -> argparse.ArgumentParser:
+    result = argparse.ArgumentParser(prog="cite-chain ledger")
+    commands = result.add_subparsers(dest="ledger_command", title="commands")
+    check = commands.add_parser("check", help="reserved for the ledger checker")
+    check.add_argument("ledger", type=Path)
+    check.add_argument("--draft", type=Path)
+    check.add_argument("--today")
+    check.add_argument("--suggest", action="store_true")
+    return result
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = parser().parse_args(argv)
+    arguments = list(sys.argv[1:] if argv is None else argv)
+    if arguments and arguments[0] == "ledger":
+        ledger = ledger_parser()
+        parsed = ledger.parse_args(arguments[1:])
+        if parsed.ledger_command == "check":
+            ledger.error("the ledger checker is not available in this release")
+        ledger.print_help()
+        return 0
+    args = parser().parse_args(arguments)
     seeds = list(args.doi)
     if args.file:
         seeds.extend(line.strip() for line in args.file.read_text(encoding="utf-8").splitlines()
@@ -56,11 +52,8 @@ def main(argv: list[str] | None = None) -> int:
         parser().error("provide at least one DOI or --file")
     graph = walk(seeds, [OpenAlexClient(), CrossrefClient(), SemanticScholarClient()],
                  hops=args.hops, max_nodes=args.max_nodes, keywords=tuple(args.keyword))
-    unpaywall = UnpaywallClient()
-    for work in graph.nodes.values():
-        if work.doi and (oa := unpaywall.lookup(work.doi)):
-            work.merge(oa)
-    _write_outputs(graph, args.output)
+    route_open_access(graph, UnpaywallClient())
+    write_outputs(graph, args.output)
     return 0
 
 
