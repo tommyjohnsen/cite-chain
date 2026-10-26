@@ -1,7 +1,7 @@
 <!--
 PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
 written-by: unknown (pre-provenance) | 2026-10-16 | 7c43fb7
-modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | provenance block added
+modified-by: codex/gpt-5.6-sol | 2026-10-26 | 00d4acd | provenance block added
 END PROVENANCE
 -->
 # cite-chain: spec

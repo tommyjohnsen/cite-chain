@@ -1,6 +1,6 @@
 # PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
 # written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
-# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | stable Semantic Scholar keys added with provenance block
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | 00d4acd | stable Semantic Scholar keys added with provenance block
 # END PROVENANCE
 """Small provider-neutral data model."""
 

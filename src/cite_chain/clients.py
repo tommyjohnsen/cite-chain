@@ -1,6 +1,6 @@
 # PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
 # written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
-# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | OpenAlex identifier routing fixed with provenance block added
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | 00d4acd | OpenAlex identifier routing fixed with provenance block added
 # END PROVENANCE
 """Clients for authoritative scholarly metadata services."""
 

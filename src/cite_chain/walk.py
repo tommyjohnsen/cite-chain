@@ -1,6 +1,6 @@
 # PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
 # written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
-# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | distinct Semantic Scholar identities preserved during graph deduplication with provenance block
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | 00d4acd | distinct Semantic Scholar identities preserved during graph deduplication with provenance block
 # END PROVENANCE
 """Bounded breadth-first citation graph traversal."""
 
