@@ -1,3 +1,9 @@
+<!--
+PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
+written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
+modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | provenance block added
+END PROVENANCE
+-->
 # cite-chain
 
 `cite-chain` is a small, deterministic Python tool for walking scholarly

@@ -1,3 +1,7 @@
+# PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
+# written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | stable Semantic Scholar keys added with provenance block
+# END PROVENANCE
 """Small provider-neutral data model."""
 
 from __future__ import annotations
@@ -42,6 +46,8 @@ class Work:
     def key(self) -> str:
         if self.doi:
             return f"doi:{self.doi}"
+        if semantic_scholar_id := self.source_ids.get("semantic_scholar"):
+            return f"semantic_scholar:{semantic_scholar_id}"
         return f"title:{normalize_title(self.title)}:{self.year or ''}"
 
     def merge(self, other: "Work") -> "Work":

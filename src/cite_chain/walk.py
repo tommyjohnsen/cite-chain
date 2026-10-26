@@ -1,3 +1,7 @@
+# PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
+# written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | distinct Semantic Scholar identities preserved during graph deduplication with provenance block
+# END PROVENANCE
 """Bounded breadth-first citation graph traversal."""
 
 from __future__ import annotations
@@ -23,16 +27,22 @@ class Graph:
     attributions: set[str] = field(default_factory=set)
 
     def add(self, work: Work, hop: int) -> tuple[str, bool]:
-        # DOI is authoritative. For DOI-less records, title plus year is the key.
+        # DOI is authoritative. Provider IDs keep DOI-less records distinct.
         key = work.key
         if key in self.nodes:
             self.nodes[key].merge(work)
             self.hops[key] = min(self.hops[key], hop)
             return key, False
         normalized = normalize_title(work.title)
+        semantic_scholar_id = work.source_ids.get("semantic_scholar")
         same_metadata = next(
             (existing_key for existing_key, existing in self.nodes.items()
-             if normalized and normalize_title(existing.title) == normalized and existing.year == work.year),
+             if normalized
+             and normalize_title(existing.title) == normalized
+             and existing.year == work.year
+             and not (semantic_scholar_id
+                      and existing.source_ids.get("semantic_scholar")
+                      and semantic_scholar_id != existing.source_ids["semantic_scholar"])),
             None,
         )
         if same_metadata is not None:

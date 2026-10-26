@@ -1,3 +1,7 @@
+# PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
+# written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | focused OpenAlex and Semantic Scholar identity regression tests added with provenance block
+# END PROVENANCE
 from __future__ import annotations
 
 import json
@@ -53,6 +57,38 @@ def test_openalex_pages_with_key_and_email():
     assert len(calls) == 2
 
 
+def test_openalex_get_work_routes_openalex_ids_without_doi_prefix():
+    calls = []
+
+    def opener(request, **_):
+        calls.append(request.full_url)
+        return Response({"id": "https://openalex.org/W1920000001", "title": "Synthetic work"})
+
+    client = OpenAlexClient(api_key="", email="", opener=opener, sleeper=lambda _: None)
+    assert client.get_work("W1920000001").source_ids["openalex"].endswith("W1920000001")
+    assert client.get_work("https://openalex.org/W1920000002") is not None
+    assert [urlparse(url).path for url in calls] == [
+        "/works/W1920000001",
+        "/works/W1920000002",
+    ]
+
+
+def test_openalex_get_work_routes_only_dois_through_doi_url():
+    calls = []
+
+    def opener(request, **_):
+        calls.append(request.full_url)
+        return Response({"id": "https://openalex.org/W1920000003", "title": "Synthetic work"})
+
+    client = OpenAlexClient(api_key="", email="", opener=opener, sleeper=lambda _: None)
+    assert client.get_work("10.5555/synthetic.3") is not None
+    assert client.get_work("synthetic-provider-id") is not None
+    assert [urlparse(url).path for url in calls] == [
+        "/works/https%3A%2F%2Fdoi.org%2F10.5555%2Fsynthetic.3",
+        "/works/synthetic-provider-id",
+    ]
+
+
 def test_unpaywall_skips_without_email():
     called = False
 
@@ -79,6 +115,14 @@ def test_semantic_scholar_cache_excludes_key(tmp_path: Path):
     assert len(calls) == 1
     written = "".join(path.read_text() for path in tmp_path.rglob("*.json"))
     assert "synthetic-secret" not in written
+
+
+def test_semantic_scholar_doi_less_records_have_distinct_stable_keys():
+    first = SemanticScholarClient.parse({"paperId": "SYNTHETIC-A", "externalIds": {}})
+    second = SemanticScholarClient.parse({"paperId": "SYNTHETIC-B", "externalIds": {}})
+
+    assert first.key == "semantic_scholar:SYNTHETIC-A"
+    assert second.key == "semantic_scholar:SYNTHETIC-B"
 
 
 def test_rate_limiter_uses_injected_clock():

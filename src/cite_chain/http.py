@@ -1,3 +1,7 @@
+# PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
+# written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | provenance block added
+# END PROVENANCE
 """Shared stdlib HTTP, throttling, and local cache helpers."""
 
 from __future__ import annotations
@@ -57,4 +61,3 @@ class JsonCache:
         path = self._path(namespace, key)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(value, sort_keys=True), encoding="utf-8")
-

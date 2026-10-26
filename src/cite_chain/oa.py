@@ -1,3 +1,7 @@
+# PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
+# written-by: unknown (pre-provenance) | 2026-10-16 | a1461ef
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | provenance block added
+# END PROVENANCE
 """Deterministic open-access routing."""
 
 from __future__ import annotations

@@ -1,9 +1,14 @@
+# PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
+# written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | OpenAlex identifier routing fixed with provenance block added
+# END PROVENANCE
 """Clients for authoritative scholarly metadata services."""
 
 from __future__ import annotations
 
 from collections.abc import Callable, Iterator
 import os
+import re
 import threading
 import time
 from typing import Any
@@ -13,6 +18,10 @@ import warnings
 
 from .http import JsonCache, RateLimiter, get_json
 from .models import Work, normalize_doi
+
+
+OPENALEX_ID_RE = re.compile(r"^(?:https?://(?:api\.)?openalex\.org/)?(W\d+)$", re.I)
+DOI_RE = re.compile(r"^10\.\d{4,9}/\S+$", re.I)
 
 
 def _year(value: Any) -> int | None:
@@ -70,7 +79,14 @@ class OpenAlexClient:
         )
 
     def get_work(self, identifier: str) -> Work | None:
-        ident = f"https://doi.org/{normalize_doi(identifier)}" if normalize_doi(identifier) else identifier
+        openalex_match = OPENALEX_ID_RE.fullmatch(identifier.strip())
+        doi = normalize_doi(identifier)
+        if openalex_match:
+            ident = openalex_match.group(1).upper()
+        elif doi and DOI_RE.fullmatch(doi):
+            ident = f"https://doi.org/{doi}"
+        else:
+            ident = identifier
         try:
             return self.parse(self._request(f"/works/{quote(ident, safe='')}"))
         except Exception as exc:

@@ -1,3 +1,7 @@
+# PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
+# written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | DOI-less Semantic Scholar traversal regression test added with provenance block
+# END PROVENANCE
 from __future__ import annotations
 
 from cite_chain.models import Work
@@ -74,6 +78,29 @@ def test_doi_less_neighbor_merges_into_existing_doi_record():
     graph = walk(["10.5555/seed.1"], [source, alternate], hops=1)
     assert len(graph.nodes) == 2
     assert graph.nodes["doi:10.5555/back.1"].source_ids["second"] == "S2"
+
+
+def test_doi_less_semantic_scholar_neighbors_remain_distinct():
+    source = fixture_source()
+    source.forward["10.5555/seed.1"] = ["semantic-a", "semantic-b"]
+    source.works["semantic-a"] = Work(
+        "Same synthetic title", year=2024,
+        source_ids={"semantic_scholar": "SYNTHETIC-A"},
+    )
+    source.works["semantic-b"] = Work(
+        "Same synthetic title", year=2024,
+        source_ids={"semantic_scholar": "SYNTHETIC-B"},
+    )
+
+    graph = walk(["10.5555/seed.1"], [source], hops=1)
+
+    assert set(graph.nodes) == {
+        "doi:10.5555/back.1",
+        "doi:10.5555/seed.1",
+        "semantic_scholar:SYNTHETIC-A",
+        "semantic_scholar:SYNTHETIC-B",
+    }
+    assert len(graph.edges) == 3
 
 
 def test_graph_output_does_not_contain_environment_values(monkeypatch):

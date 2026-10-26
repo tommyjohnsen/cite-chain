@@ -1,3 +1,7 @@
+# PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
+# written-by: unknown (pre-provenance) | 2026-10-16 | a1461ef
+# modified-by: codex/gpt-5.6-sol | 2026-10-26 | pending | provenance block added
+# END PROVENANCE
 from cite_chain.models import Work
 from cite_chain.oa import route_open_access
 from cite_chain.walk import Graph
