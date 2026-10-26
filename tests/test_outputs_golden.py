@@ -1,6 +1,7 @@
 # PROVENANCE (mirror of .provenance/ledger.jsonl; ledger wins)
 # written-by: unknown (pre-provenance) | 2026-10-16 | a1461ef
 # modified-by: codex/gpt-5.6-sol | 2026-10-26 | 00d4acd | provenance block added
+# reviewed-by: claude-code/claude-opus-5-5 | 2026-10-26 | APPROVE
 # END PROVENANCE
 from pathlib import Path
 
