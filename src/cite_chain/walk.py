@@ -2,6 +2,7 @@
 # written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
 # modified-by: codex/gpt-5.6-sol | 2026-10-26 | 00d4acd | distinct Semantic Scholar identities preserved during graph deduplication with provenance block
 # reviewed-by: claude-code/claude-opus-5-5 | 2026-10-26 | APPROVE
+# reviewed-by: grok-build/grok-4.7 | 2026-10-26 | APPROVE
 # END PROVENANCE
 """Bounded breadth-first citation graph traversal."""
 

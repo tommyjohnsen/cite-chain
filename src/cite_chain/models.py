@@ -2,6 +2,7 @@
 # written-by: unknown (pre-provenance) | 2026-10-16 | f79efcb
 # modified-by: codex/gpt-5.6-sol | 2026-10-26 | 00d4acd | stable Semantic Scholar keys added with provenance block
 # reviewed-by: claude-code/claude-opus-5-5 | 2026-10-26 | APPROVE
+# reviewed-by: grok-build/grok-4.7 | 2026-10-26 | APPROVE
 # END PROVENANCE
 """Small provider-neutral data model."""
 
